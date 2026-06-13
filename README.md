@@ -2,7 +2,7 @@
 
 A fast, single-file Tesla VIN decoder. Paste any Tesla VIN and get a full breakdown of the vehicle — model, year, plant, drive unit, battery type, restraint system, and more.
 
-**[Try it →](index.html)**
+**[Try it →](https://dan-nguyen.github.io/vinbot/)**
 
 ## Features
 
