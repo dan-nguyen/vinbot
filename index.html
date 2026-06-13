@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tesla VIN Decoder</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#fff;--sf:#f6f6f6;--bd:#e8e8e8;--tx:#111;--mu:#888;--su:#c8c8c8;--er:#c0392b;--ok:#27ae60;--mo:'SF Mono','Fira Code','Consolas',monospace}
+html.dark{--bg:#0f0f0f;--sf:#1a1a1a;--bd:#2a2a2a;--tx:#ededed;--mu:#777;--su:#444;--er:#f87171;--ok:#4ade80}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;transition:background .2s,color .2s}
+.page{max-width:660px;margin:0 auto;padding:72px 24px 96px}
+header{position:relative;margin-bottom:52px}
+.theme-btn{position:absolute;top:2px;right:0;display:flex;align-items:center;gap:7px;background:none;border:none;cursor:pointer;padding:0}
+.t-icon{font-size:.85rem;line-height:1;opacity:.3;transition:opacity .2s;user-select:none}
+.t-icon.on{opacity:1}
+.t-track{width:40px;height:24px;background:#d1d1d6;border-radius:12px;position:relative;transition:background .25s;flex-shrink:0}
+.t-thumb{position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.3);transition:transform .25s cubic-bezier(.4,0,.2,1)}
+html.dark .t-track{background:#34c759}
+html.dark .t-thumb{transform:translateX(16px)}
+html.dark .c-wmi{background:#1e3352;color:#93c5fd}html.dark .c-model{background:#3f1a1a;color:#fca5a5}html.dark .c-body{background:#2e1f4a;color:#c4b5fd}html.dark .c-rest{background:#1a3326;color:#86efac}html.dark .c-fuel{background:#332b14;color:#fcd34d}html.dark .c-drv{background:#0f2e35;color:#67e8f9}html.dark .c-chk{background:#222;color:#9ca3af}html.dark .c-yr{background:#1a2852;color:#93c5fd}html.dark .c-plt{background:#3f1a2e;color:#f9a8d4}html.dark .c-seq{background:#1a3320;color:#86efac}
+html.dark .card-value.hw-likely{color:#4ade80}html.dark .card-value.hw-possible{color:#fbbf24}
+h1{font-size:1.0625rem;font-weight:600;letter-spacing:-.01em}
+.sub{font-size:.8125rem;color:var(--mu);margin-top:4px}
+.input-wrap{position:relative}
+.vin-input{width:100%;font-family:var(--mo);font-size:1.375rem;letter-spacing:.16em;padding:18px 56px 18px 20px;border:1.5px solid var(--bd);border-radius:10px;outline:none;text-transform:uppercase;color:var(--tx);background:var(--bg);transition:border-color .18s;caret-color:var(--tx)}
+.vin-input::placeholder{color:var(--su)}
+.vin-input:focus{border-color:var(--tx)}
+.vin-input.err{border-color:var(--er)}
+.vin-input.ok{border-color:var(--ok)}
+.vin-count{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-family:var(--mo);font-size:.6875rem;color:var(--su);pointer-events:none}
+.clear-btn{position:absolute;right:16px;top:50%;transform:translateY(-50%);background:var(--su);border:none;border-radius:50%;width:18px;height:18px;display:none;align-items:center;justify-content:center;cursor:pointer;color:var(--bg);font-size:.6rem;font-weight:700;line-height:1;transition:background .15s}
+.clear-btn:hover{background:var(--mu)}
+.input-wrap.has-val .clear-btn{display:flex}
+.input-wrap.has-val .vin-count{display:none}
+.err-msg{font-size:.7875rem;color:var(--er);margin-top:8px;display:none}
+.vin-visual{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;align-items:flex-start}
+.vin-section{display:flex;flex-direction:column;gap:6px;align-items:center}
+.vin-section-chars{display:flex;gap:3px}
+.vin-section-label{font-size:.55rem;color:var(--su);font-family:var(--mo);text-transform:uppercase;letter-spacing:.06em;text-align:center;white-space:nowrap}
+.vin-sep{width:1px;background:var(--bd);align-self:stretch;margin:0 1px 16px}
+.vc{display:flex;flex-direction:column;align-items:center;gap:3px}
+.vc-char{width:30px;height:34px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-family:var(--mo);font-size:.875rem;font-weight:700}
+.vc-pos{font-size:.5375rem;color:var(--su);font-family:var(--mo)}
+.c-wmi{background:#dbeafe;color:#1d4ed8}.c-model{background:#fee2e2;color:#b91c1c}.c-body{background:#ede9fe;color:#6d28d9}.c-rest{background:#dcfce7;color:#166534}.c-fuel{background:#fef9c3;color:#854d0e}.c-drv{background:#cffafe;color:#0e7490}.c-chk{background:#f3f4f6;color:#6b7280}.c-yr{background:#dbeafe;color:#1e40af}.c-plt{background:#fce7f3;color:#9d174d}.c-seq{background:#dcfce7;color:#14532d}
+.divider{height:1px;background:var(--bd);margin:44px 0}
+.results{display:none}.results.show{display:block}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:440px){.grid{grid-template-columns:1fr}.vin-input{font-size:1rem;letter-spacing:.1em}.vc-char{width:24px;height:28px;font-size:.75rem}}
+.card{background:var(--sf);border-radius:8px;padding:14px 16px}
+.card.wide{grid-column:1/-1}
+.card-pos{font-size:.575rem;font-family:var(--mo);color:var(--su);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.card-label{font-size:.6625rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--mu);margin-bottom:6px}
+.card-value{font-size:.9125rem;font-weight:500;color:var(--tx);line-height:1.45}
+.card-value.none{color:var(--su);font-style:italic;font-weight:400}
+.card-value.chk-ok{color:var(--ok)}.card-value.chk-fail{color:var(--er)}.card-value.hw-likely{color:#16a34a}.card-value.hw-possible{color:#b45309}
+.card-code{margin-top:5px;font-family:var(--mo);font-size:.6875rem;color:var(--su)}
+.samples{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:28px;align-items:center}
+.samples-label{font-size:.6rem;font-family:var(--mo);color:var(--su);text-transform:uppercase;letter-spacing:.08em;margin-right:2px}
+.sample-btn{background:none;border:1.5px solid var(--bd);border-radius:20px;padding:5px 13px;font-size:.6875rem;font-family:var(--mo);color:var(--mu);cursor:pointer;transition:border-color .15s,color .15s,background .15s;letter-spacing:.02em;white-space:nowrap}
+.sample-btn:hover{border-color:var(--tx);color:var(--tx)}
+</style>
+</head>
+<body>
+<div class="page">
+<header><h1>Tesla VIN Decoder</h1><p class="sub">Paste a 17-character VIN to see vehicle details</p><button class="theme-btn" id="themeBtn" aria-label="Toggle dark mode"><span class="t-icon on" id="tSun">☀</span><div class="t-track"><div class="t-thumb"></div></div><span class="t-icon" id="tMoon">☾</span></button></header>
+<div class="samples">
+<span class="samples-label">Examples</span>
+<button class="sample-btn" data-vin="5YJSA1E56PF000001">Model S</button>
+<button class="sample-btn" data-vin="5YJ3E1EB1NF000001">Model 3</button>
+<button class="sample-btn" data-vin="7SAXCAE66RF386000">Model X</button>
+<button class="sample-btn" data-vin="7SAYGDEK7RA100000">Model Y</button>
+<button class="sample-btn" data-vin="7G2CJHEDXRA050000">Cybertruck</button>
+</div>
+<div class="input-wrap">
+<input id="vin" class="vin-input" type="text" maxlength="17" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" placeholder="5YJYGDEE7NF000001">
+<span class="vin-count" id="count">0 / 17</span>
+<button class="clear-btn" id="clearBtn" aria-label="Clear">✕</button>
+</div>
+<div class="err-msg" id="errMsg"></div>
+<div class="vin-visual" id="visual"></div>
+<div class="results" id="results"><div class="divider"></div><div class="grid" id="grid"></div></div>
+</div>
+<script>
+// ── Shared string fragments (avoids repeating long strings across data tables) ──
+const _F='Tesla Fremont, CA',_SH='Giga Shanghai, China',_LFP='LFP — Lithium Iron Phosphate Battery',_ELI='Electric — Lithium-Ion';
+const _MB='Manual belts + Front Airbags',_OD=', Occupant Detection',_SI=', Side Inflatable Restraints',_KA=', Knee Airbags',_AH=' + Active Hood';
+const _R5 =_MB+_OD+_SI+_KA+' — 5-seat';
+const _R5s=_MB+_SI+' — 5-seat';
+const _R7 =_MB+_OD+_SI+_KA+' — 7-seat (2+3+2)';
+const _R6 =_MB+_OD+_SI+_KA+' — 6-seat (2+2+2)';
+const _R5c=_MB+_OD+_SI+' — 5-seat (2+3)';
+const _R5d=_MB+_OD+_SI+_KA+' — 5-seat (2+3)';
+const _RAH=_MB+_SI+_AH+' — 5-seat';
+
+// Legacy Model S shared sub-tables
+const _SB12={A:'Hatchback 5-Door LHD — RWD',B:'Hatchback 5-Door LHD — AWD',C:'Hatchback 5-Door RHD — RWD',D:'Hatchback 5-Door RHD — AWD'};
+const _SF12={A:'10 kW Charger',B:'20 kW Charger',C:'10 kW Charger + DC Fast Charge',D:'20 kW Charger + DC Fast Charge'};
+const _SD12={C:'Base AC Motor — Tier 2 Battery (31–40 kWh)',G:'Base AC Motor — Tier 4 Battery (51–60 kWh)',N:'Base AC Motor — Tier 7 Battery (81–90 kWh)',P:'Performance AC Motor — Tier 7 Battery (81–90 kWh)'};
+const _SD1518={1:'Single Motor — Large Base',2:'Dual Motor — Small Base + Small Base',3:'Single Motor — Large Performance',4:'Dual Motor — Small Base + Large Performance'};
+const _SD1920={1:'Single Motor — Standard',2:'Dual Motor — Standard',3:'Single Motor — Performance',4:'Dual Motor — Performance'};
+const _SR12  ={1:'USA manual belts + front airbags, front/rear side airbags, knee airbags — 5-seat',2:'EU manual belts + front airbags, front/rear side airbags, knee airbags — 5-seat'};
+const _SR1517={1:_R5,3:_R5s,7:_RAH};
+const _SR1820={1:_R5,3:_R5s,7:_R5s};
+const _SLE={E:'Electric'};
+
+// ── Lookup tables ──
+const MODEL={S:'Model S',3:'Model 3',X:'Model X',Y:'Model Y',C:'Cybertruck',R:'Roadster',A:'Cybercab',T:'Semi'};
+const ALL_WMI=new Set(['5YJ','7SA','LRW','XP7','SFZ','5XJ','3MW','7G2']);
+
+const WMI={
+  3:{'5YJ':_F+' / Austin, TX','5XJ':_F+' (Secondary)',LRW:_SH,'3MW':'Monterrey, Mexico (Future)'},
+  S:{'5YJ':_F,'5XJ':_F+' (Secondary)'},
+  X:{'7SA':_F+' / Austin, TX'},
+  Y:{'5YJ':'Tesla Fremont — through Model Year 2021','7SA':'Tesla Fremont / Giga Texas — from Model Year 2022',LRW:_SH,XP7:'Giga Berlin, Germany','3MW':'Monterrey, Mexico (Future)'},
+  C:{'5YJ':_F,'7SA':'Tesla Austin, TX','7G2':'Tesla Austin, TX / Giga Nevada'},
+  R:{SFZ:'Lotus Factory — Norfolk, UK'},
+  A:{'5YJ':_F},
+  T:{'7G2':'Tesla Austin, TX / Giga Nevada'},
+};
+
+const BODY={
+  3:{E:'Sedan 4-Door — Left-Hand Drive',F:'Sedan 4-Door — Right-Hand Drive'},
+  S:{A:'Hatchback 5-Door — Left-Hand Drive',B:'Hatchback 5-Door — Right-Hand Drive'},
+  X:{C:'Class E MPV 5-Door — Left-Hand Drive',D:'Class E MPV 5-Door — Right-Hand Drive'},
+  Y:{G:'Class D MPV 5-Door — Left-Hand Drive',H:'Class D MPV 5-Door — Right-Hand Drive'},
+  C:{E:'Truck / Pickup — Left-Hand Drive',J:'Crew Cab — Left-Hand Drive'},
+  A:{J:'Robotaxi Body'},
+  T:{K:'Day Cab — No Sleeper',L:'Sleeper Cab — With Sleeper Berth',1:'Day Cab — Standard'},
+};
+
+const RESTRAINT={
+  3:{1:_R5,7:_R5s},
+  S:{1:_R5,7:_R5s},
+  X:{A:_R7,B:_R6,C:_R5c,D:_R5d},
+  Y:{A:_R7,B:_R6,C:_R5c,D:_R5d},
+  C:{H:_R5,G:'Class 2B-3 GVWR (8,501–14,000 lbs)',B:'Class 2B GVWR'},
+  R:{2:'Manual Seatbelts'},
+  A:{E:'Robotaxi Restraint System'},
+  T:{H:'Class 8 GVWR (Over 33,000 lbs)',E:'Class 8 GVWR (33,001+ lbs)'},
+};
+
+const FUEL={
+  3:{E:'Electric — Li-ion NMC/NCA Battery',F:_LFP,H:_LFP},
+  S:{E:'Electric'},
+  X:{E:'Electric'},
+  Y:{E:'Electric — Li-ion NMC/NCA Battery',F:_LFP,H:_LFP},
+  C:{S:'Standard Range (~250 mi)',R:'Long Range (~340 mi)',E:_ELI,0:'Battery — Base'},
+  R:{B:'Battery — Lithium-Ion'},
+  A:{E:_ELI},
+  T:{S:'Standard Range (~300 mi)',R:'Long Range (~500 mi)',E:_ELI,0:'Battery — Base'},
+};
+
+const DRIVE={
+  3:{A:'Single Motor — Standard (3DU 800A)',B:'Dual Motor — Standard',C:'Dual Motor — Performance',J:'Single Motor — Hairpin Winding',K:'Dual Motor — Hairpin Winding',L:'Dual Motor — Hairpin Winding Performance',R:'Single Motor — Standard (3DU 600A)',S:'Single Motor — Standard (DUB 600A)',T:'Dual Motor — Performance (Highland)'},
+  S:{5:'Dual Motor',6:'Triple Motor — Plaid'},
+  X:{5:'Dual Motor',6:'Triple Motor — Plaid'},
+  Y:{D:'Single Motor — Standard',E:'Dual Motor — Standard',F:'Dual Motor — Performance (3DU 800A)',J:'Single Motor — Hairpin Winding',K:'Dual Motor — Hairpin Winding',L:'Dual Motor — Hairpin Winding Performance',R:'Single Motor — Standard (3DU 600A)',S:'Single Motor — Standard (DUB 600A)'},
+  C:{D:'Dual Motor — AWD Standard',E:'Triple Motor — Cyberbeast Performance'},
+  R:{4:'Single Motor — AC Induction'},
+  A:{U:'Robotaxi Drive Unit'},
+  T:{B:'Dual Drive Rear Axle — Air Brakes',0:'Drive Unit — Standard'},
+};
+
+const YEAR={8:'2008',9:'2009',A:'2010',B:'2011',C:'2012',D:'2013',E:'2014',F:'2015',G:'2016',H:'2017',J:'2018',K:'2019',L:'2020',M:'2021',N:'2022',P:'2023',R:'2024',S:'2025',T:'2026',V:'2027'};
+
+const PLANT={F:'Tesla Factory — Fremont, CA',A:'Giga Texas — Austin, TX',C:'Giga Shanghai — China',B:'Giga Berlin — Germany',G:'Giga Berlin — Brandenburg, Germany',N:'Giga Nevada — Reno, NV',1:'Lotus Factory — Norfolk, UK',3:'Palo Alto — R&D / Prototypes',P:'Palo Alto — R&D / Prototypes'};
+
+const S_LEGACY_YEARS=new Set(['C','D','E','F','G','H','J','K','L']);
+const S_LEGACY={
+  body:{C:_SB12,D:_SB12},
+  restraint:{
+    C:_SR12,D:_SR12,
+    E:{1:_R5,2:_MB+_SI+_KA+' — 5-seat',4:_MB+_SI+_KA+' — 4-seat (2+2)',5:_MB+_SI+' — 4-seat (2+2)',6:_MB+_SI+' — 5-seat',7:_RAH,8:_MB+_SI+_AH+' — 4-seat (2+2)'},
+    F:{1:_R5,3:_R5s,6:_R5s,7:_RAH,8:_MB+_SI+_AH+' — 4-seat (2+2)'},
+    G:_SR1517,H:_SR1517,
+    J:_SR1820,K:_SR1820,L:_SR1820,
+  },
+  fuel:{
+    C:_SF12,D:_SF12,
+    E:{H:'Li-ion — High Capacity',S:'Li-ion — Standard Capacity'},
+    F:{S:'Li-ion — Standard Capacity',H:'Li-ion — High Capacity',V:'Li-ion — Ultra High Capacity',E:'Electric'},
+    G:_SLE,H:_SLE,J:_SLE,K:_SLE,L:_SLE,
+  },
+  drive:{
+    C:_SD12,D:_SD12,
+    E:{1:'Single Motor — 3-Phase AC Induction',2:'Dual Motor — 3-Phase AC Induction'},
+    F:_SD1518,G:_SD1518,H:_SD1518,J:_SD1518,
+    K:_SD1920,L:_SD1920,
+  },
+  typedSeq:new Set(['C','D','E']),
+};
+
+const SEQ_TYPES={A:'Alpha Prototype',B:'Beta Prototype',F:'Founder Series',P:'Production',R:'Release Candidate',S:'Signature Series'};
+
+// Array indexed by 1-based VIN position (index 0 unused)
+const POS_CLS=['','c-wmi','c-wmi','c-wmi','c-model','c-body','c-rest','c-fuel','c-drv','c-chk','c-yr','c-plt','c-seq','c-seq','c-seq','c-seq','c-seq','c-seq'];
+
+// ── Logic ──
+function getHW(m,seq){
+  if(m!=='X')return null;
+  if(seq>=385000)return{t:'Likely HW4',c:'hw-likely'};
+  if(seq>=383000)return{t:'Possibly HW4',c:'hw-possible'};
+  return{t:'HW3',c:'none'};
+}
+
+function chk(v){
+  const xl={A:1,B:2,C:3,D:4,E:5,F:6,G:7,H:8,J:1,K:2,L:3,M:4,N:5,P:7,R:9,S:2,T:3,U:4,V:5,W:6,X:7,Y:8,Z:9};
+  const w=[8,7,6,5,4,3,2,10,0,9,8,7,6,5,4,3,2];
+  let s=0;
+  for(let i=0;i<17;i++){const c=v[i];s+=(c>='0'&&c<='9'?+c:xl[c])*w[i];}
+  const r=s%11;return r===10?'X':''+r;
+}
+
+function card(pos,label,val,code,wide){
+  return`<div class="card${wide?' wide':''}"><div class="card-pos">${pos}</div><div class="card-label">${label}</div><div class="card-value${val?'':' none'}">${val??'Unknown'}</div>${code?`<div class="card-code">${code}</div>`:''}</div>`;
+}
+
+function renderResults(v){
+  const m=v[3],yr=v[9],isLS=m==='S'&&S_LEGACY_YEARS.has(yr),wmi=v.slice(0,3);
+  const bm=isLS?(S_LEGACY.body[yr]||BODY.S):(BODY[m]||{});
+  const rm=isLS?(S_LEGACY.restraint[yr]||{}):(RESTRAINT[m]||{});
+  const fm=isLS?(S_LEGACY.fuel[yr]||{}):(FUEL[m]||{});
+  const dm=isLS?(S_LEGACY.drive[yr]||{}):(DRIVE[m]||{});
+  const exp=chk(v),got=v[8],ok=got===exp;
+  let sd,sc;
+  if(isLS&&S_LEGACY.typedSeq.has(yr)){
+    const tc=v[11];sd=`${SEQ_TYPES[tc]??tc} — #${parseInt(v.slice(12),10).toLocaleString()}`;sc=v.slice(11);
+  }else{sc=v.slice(11);sd=`#${parseInt(sc,10).toLocaleString()}`;}
+  const hw=getHW(m,parseInt(sc,10));
+  document.getElementById('grid').innerHTML=[
+    card('Digits 1–3','Manufacturer',(WMI[m]||{})[wmi],wmi),
+    card('Digit 4','Model',MODEL[m],m),
+    card('Digit 10','Model Year',YEAR[yr],yr),
+    card('Digit 11','Assembly Plant',PLANT[v[10]],v[10]),
+    card('Digit 5','Body Type',bm[v[4]],v[4]),
+    card('Digit 8','Drive Unit',dm[v[7]],v[7]),
+    card('Digit 7','Battery Type',fm[v[6]],v[6]),
+    card('Digit 6','Restraint System',rm[v[5]],v[5]),
+    `<div class="card"><div class="card-pos">Digit 9</div><div class="card-label">Check Digit</div><div class="card-value ${ok?'chk-ok':'chk-fail'}">${ok?'Valid ✓':`Invalid — expected ${exp??'?'}, got ${got}`}</div><div class="card-code">${got}</div></div>`,
+    card('Digits 12–17','Production Sequence',sd,sc,1),
+    ...(hw?[`<div class="card"><div class="card-pos">Derived · Digits 12–17</div><div class="card-label">Autopilot Hardware</div><div class="card-value ${hw.c}">${hw.t}</div><div class="card-code">${parseInt(sc,10).toLocaleString()}</div></div>`]:[]),
+  ].join('');
+}
+
+const SECS=[{l:'WMI · Manufacturer',s:0,e:3},{l:'VDS · Vehicle Descriptor',s:3,e:9},{l:'VIS · Vehicle Identifier',s:9,e:17}];
+
+function renderVisual(v){
+  const el=document.getElementById('visual');
+  if(!v){el.innerHTML='';return;}
+  el.innerHTML=SECS.flatMap(({l,s,e},i)=>{
+    const cs=Array.from(v.slice(s,Math.min(e,v.length)));
+    if(!cs.length)return[];
+    return[
+      i?'<div class="vin-sep"></div>':'',
+      `<div class="vin-section"><div class="vin-section-chars">${cs.map((c,j)=>`<div class="vc"><span class="vc-char ${POS_CLS[s+j+1]||'c-chk'}">${c}</span><span class="vc-pos">${s+j+1}</span></div>`).join('')}</div><div class="vin-section-label">${l}</div></div>`,
+    ];
+  }).join('');
+}
+
+// ── Event handling ──
+const vinEl=document.getElementById('vin'),countEl=document.getElementById('count'),errEl=document.getElementById('errMsg'),resEl=document.getElementById('results'),wrapEl=vinEl.closest('.input-wrap');
+
+function processInput(raw){
+  const v=raw.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g,'');
+  if(vinEl.value!==v)vinEl.value=v;
+  countEl.textContent=`${v.length} / 17`;
+  wrapEl.classList.toggle('has-val',v.length>0);
+  renderVisual(v);
+  vinEl.classList.remove('err','ok');
+  errEl.style.display='none';
+  resEl.classList.remove('show');
+  if(v.length<17)return;
+  const wmi=v.slice(0,3);
+  if(!ALL_WMI.has(wmi)){
+    vinEl.classList.add('err');
+    errEl.textContent=`"${wmi}" is not a recognized Tesla manufacturer code. This decoder supports Tesla vehicles only.`;
+    errEl.style.display='block';
+    return;
+  }
+  vinEl.classList.add('ok');
+  renderResults(v);
+  resEl.classList.add('show');
+  const u=new URL(location.href);u.searchParams.set('vin',v);history.replaceState(null,'',u);
+}
+
+vinEl.addEventListener('input',()=>processInput(vinEl.value));
+document.querySelectorAll('.sample-btn').forEach(b=>b.addEventListener('click',()=>processInput(b.dataset.vin)));
+document.getElementById('clearBtn').addEventListener('click',()=>processInput(''));
+const _uv=new URLSearchParams(location.search).get('vin');
+if(_uv)processInput(_uv);
+
+const _btn=document.getElementById('themeBtn'),_root=document.documentElement,_sun=document.getElementById('tSun'),_moon=document.getElementById('tMoon');
+function setTheme(dark){_root.classList.toggle('dark',dark);_sun.classList.toggle('on',!dark);_moon.classList.toggle('on',dark);localStorage.setItem('vb-theme',dark?'dark':'light');}
+const _saved=localStorage.getItem('vb-theme');
+setTheme(_saved?_saved==='dark':true);
+_btn.addEventListener('click',()=>setTheme(!_root.classList.contains('dark')));
+</script>
+</body>
+</html>
