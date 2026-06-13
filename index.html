@@ -6,10 +6,10 @@
 <title>Tesla VIN Decoder</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#fff;--sf:#f6f6f6;--bd:#e8e8e8;--tx:#111;--mu:#888;--su:#c8c8c8;--er:#c0392b;--ok:#27ae60;--mo:'SF Mono','Fira Code','Consolas',monospace}
+:root{--bg:#fff;--sf:#f6f6f6;--bd:#e8e8e8;--tx:#111;--mu:#888;--su:#c8c8c8;--er:#c0392b;--ok:#27ae60;--mo:'SF Mono','Fira Code','Consolas',monospace;font-size:20px}
 html.dark{--bg:#0f0f0f;--sf:#1a1a1a;--bd:#2a2a2a;--tx:#ededed;--mu:#777;--su:#444;--er:#f87171;--ok:#4ade80}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;transition:background .2s,color .2s}
-.page{max-width:660px;margin:0 auto;padding:72px 24px 96px}
+.page{max-width:820px;margin:0 auto;padding:72px 24px 96px}
 header{position:relative;margin-bottom:52px}
 .theme-btn{position:absolute;top:2px;right:0;display:flex;align-items:center;gap:7px;background:none;border:none;cursor:pointer;padding:0}
 .t-icon{font-size:.85rem;line-height:1;opacity:.3;transition:opacity .2s;user-select:none}
@@ -34,19 +34,19 @@ h1{font-size:1.0625rem;font-weight:600;letter-spacing:-.01em}
 .input-wrap.has-val .clear-btn{display:flex}
 .input-wrap.has-val .vin-count{display:none}
 .err-msg{font-size:.7875rem;color:var(--er);margin-top:8px;display:none}
-.vin-visual{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;align-items:flex-start}
+.vin-visual{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;align-items:flex-start;justify-content:center}
 .vin-section{display:flex;flex-direction:column;gap:6px;align-items:center}
 .vin-section-chars{display:flex;gap:3px}
 .vin-section-label{font-size:.55rem;color:var(--su);font-family:var(--mo);text-transform:uppercase;letter-spacing:.06em;text-align:center;white-space:nowrap}
 .vin-sep{width:1px;background:var(--bd);align-self:stretch;margin:0 1px 16px}
 .vc{display:flex;flex-direction:column;align-items:center;gap:3px}
-.vc-char{width:30px;height:34px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-family:var(--mo);font-size:.875rem;font-weight:700}
+.vc-char{width:40px;height:44px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--mo);font-size:1rem;font-weight:700}
 .vc-pos{font-size:.5375rem;color:var(--su);font-family:var(--mo)}
 .c-wmi{background:#dbeafe;color:#1d4ed8}.c-model{background:#fee2e2;color:#b91c1c}.c-body{background:#ede9fe;color:#6d28d9}.c-rest{background:#dcfce7;color:#166534}.c-fuel{background:#fef9c3;color:#854d0e}.c-drv{background:#cffafe;color:#0e7490}.c-chk{background:#f3f4f6;color:#6b7280}.c-yr{background:#dbeafe;color:#1e40af}.c-plt{background:#fce7f3;color:#9d174d}.c-seq{background:#dcfce7;color:#14532d}
 .divider{height:1px;background:var(--bd);margin:44px 0}
 .results{display:none}.results.show{display:block}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media(max-width:440px){.grid{grid-template-columns:1fr}.vin-input{font-size:1rem;letter-spacing:.1em}.vc-char{width:24px;height:28px;font-size:.75rem}}
+@media(max-width:440px){.grid{grid-template-columns:1fr}.vin-input{font-size:1rem;letter-spacing:.1em}.vc-char{width:22px;height:26px;font-size:.65rem}}
 .card{background:var(--sf);border-radius:8px;padding:14px 16px}
 .card.wide{grid-column:1/-1}
 .card-pos{font-size:.575rem;font-family:var(--mo);color:var(--su);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
@@ -55,6 +55,15 @@ h1{font-size:1.0625rem;font-weight:600;letter-spacing:-.01em}
 .card-value.none{color:var(--su);font-style:italic;font-weight:400}
 .card-value.chk-ok{color:var(--ok)}.card-value.chk-fail{color:var(--er)}.card-value.hw-likely{color:#16a34a}.card-value.hw-possible{color:#b45309}
 .card-code{margin-top:5px;font-family:var(--mo);font-size:.6875rem;color:var(--su)}
+.card-note{margin-top:5px;font-size:.7rem;color:var(--mu);font-style:italic;line-height:1.4}
+.seq-viz{margin-top:12px}
+.sv-labels{position:relative;height:16px}
+.sv-car-label{position:absolute;transform:translateX(-50%);font-size:.575rem;font-family:var(--mo);color:var(--tx);white-space:nowrap}
+.sv-track{position:relative;height:4px;background:var(--bd);border-radius:2px;margin:0 0 6px}
+.sv-fill{position:absolute;left:0;top:0;height:100%;background:var(--ok);border-radius:2px;opacity:.35}
+.sv-dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;background:var(--ok);border-radius:50%;box-shadow:0 0 0 2px var(--bg)}
+.sv-bounds{display:flex;justify-content:space-between;font-size:.55rem;font-family:var(--mo);color:var(--mu)}
+.sv-source{margin-top:6px;font-size:.55rem;color:var(--mu);font-style:italic}
 .samples{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:28px;align-items:center}
 .samples-label{font-size:.6rem;font-family:var(--mo);color:var(--su);text-transform:uppercase;letter-spacing:.08em;margin-right:2px}
 .sample-btn{background:none;border:1.5px solid var(--bd);border-radius:20px;padding:5px 13px;font-size:.6875rem;font-family:var(--mo);color:var(--mu);cursor:pointer;transition:border-color .15s,color .15s,background .15s;letter-spacing:.02em;white-space:nowrap}
@@ -66,11 +75,12 @@ h1{font-size:1.0625rem;font-weight:600;letter-spacing:-.01em}
 <header><h1>Tesla VIN Decoder</h1><p class="sub">Paste a 17-character VIN to see vehicle details</p><button class="theme-btn" id="themeBtn" aria-label="Toggle dark mode"><span class="t-icon on" id="tSun">☀</span><div class="t-track"><div class="t-thumb"></div></div><span class="t-icon" id="tMoon">☾</span></button></header>
 <div class="samples">
 <span class="samples-label">Examples</span>
-<button class="sample-btn" data-vin="5YJSA1E56PF000001">Model S</button>
-<button class="sample-btn" data-vin="5YJ3E1EB1NF000001">Model 3</button>
-<button class="sample-btn" data-vin="7SAXCAE66RF386000">Model X</button>
-<button class="sample-btn" data-vin="7SAYGDEK7RA100000">Model Y</button>
-<button class="sample-btn" data-vin="7G2CJHEDXRA050000">Cybertruck</button>
+<button class="sample-btn" data-vin="5YJSA1E29JF221847">Model S</button>
+<button class="sample-btn" data-vin="5YJ3E1EB1NF847293">Model 3</button>
+<button class="sample-btn" data-vin="7SAXCAE60RF387143">Model X</button>
+<button class="sample-btn" data-vin="7SAYGDEK2RA394728">Model Y</button>
+<button class="sample-btn" data-vin="7G2CJHED3RA047293">Cybertruck</button>
+<button class="sample-btn" data-vin="SFZRA2B45A1001847">Roadster</button>
 </div>
 <div class="input-wrap">
 <input id="vin" class="vin-input" type="text" maxlength="17" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" placeholder="5YJYGDEE7NF000001">
@@ -197,11 +207,189 @@ const SEQ_TYPES={A:'Alpha Prototype',B:'Beta Prototype',F:'Founder Series',P:'Pr
 const POS_CLS=['','c-wmi','c-wmi','c-wmi','c-model','c-body','c-rest','c-fuel','c-drv','c-chk','c-yr','c-plt','c-seq','c-seq','c-seq','c-seq','c-seq','c-seq'];
 
 // ── Logic ──
-function getHW(m,seq){
-  if(m!=='X')return null;
-  if(seq>=385000)return{t:'Likely HW4',c:'hw-likely'};
-  if(seq>=383000)return{t:'Possibly HW4',c:'hw-possible'};
-  return{t:'HW3',c:'none'};
+function getHW(m,seq,plant,yr){
+  const year=parseInt(YEAR[yr]||0);
+  const UP3='May have been upgraded to HW3 if FSD was purchased';
+  const TRANS='Exact hardware depends on production month';
+
+  // Cybertruck, Cybercab, Semi launched natively with HW4
+  if(m==='C'||m==='A'||m==='T')return{t:'HW4',c:'hw-likely'};
+
+  // ── Model Y (launched Mar 2020, always HW3 or later) ──
+  if(m==='Y'){
+    if(year>=2024)return{t:'HW4',c:'hw-likely'};
+    if(plant==='F'){
+      if(seq>=800000)return{t:'Likely HW4',c:'hw-likely'};
+      if(seq>=790000)return{t:'Possibly HW4',c:'hw-possible'};
+    }else if(plant==='A'){
+      if(seq>=131200)return{t:'Likely HW4',c:'hw-likely'};
+      if(seq>=127000)return{t:'Possibly HW4',c:'hw-possible'};
+    }else{
+      // Shanghai / Berlin transitioned end of 2023
+      if(year===2023)return{t:'Possibly HW4',c:'hw-possible',note:'Shanghai & Berlin transitioned late 2023'};
+    }
+    if(year===2023)return{t:'Possibly HW4',c:'hw-possible'};
+    return{t:'Shipped with HW3',c:'none'};
+  }
+
+  // ── Model X ──
+  if(m==='X'){
+    if(seq>=385000)return{t:'Likely HW4',c:'hw-likely'};
+    if(seq>=370000)return{t:'Possibly HW4',c:'hw-possible'};
+    if(year>=2020&&year<=2022)return{t:'Shipped with HW3',c:'none'};
+    if(year===2019)return{t:'HW2.5 or HW3',c:'none',note:TRANS+'. '+UP3};
+    if(year===2018)return{t:'Shipped with HW2.5',c:'none',note:UP3};
+    if(year===2017)return{t:'HW2.0 or HW2.5',c:'none',note:TRANS+'. '+UP3};
+    if(year===2016)return{t:'HW1 or HW2.0',c:'none',note:TRANS+'. HW1 cannot be upgraded'};
+    if(year===2015)return{t:'Shipped with HW1',c:'none',note:'HW1 cannot be upgraded to HW3/HW4'};
+    return null;
+  }
+
+  // ── Model S ──
+  if(m==='S'){
+    // Modern S (2021+): HW3 or HW4 by sequence
+    if(!S_LEGACY_YEARS.has(yr)){
+      if(seq>=502000)return{t:'Likely HW4',c:'hw-likely'};
+      if(seq>=501000)return{t:'Possibly HW4',c:'hw-possible'};
+      return{t:'Shipped with HW3',c:'none'};
+    }
+    // Legacy S (2012–2020)
+    if(year===2020)return{t:'Shipped with HW3',c:'none'};
+    if(year===2019)return{t:'HW2.5 or HW3',c:'none',note:TRANS+'. '+UP3};
+    if(year===2018)return{t:'Shipped with HW2.5',c:'none',note:UP3};
+    if(year===2017)return{t:'HW2.0 or HW2.5',c:'none',note:TRANS+'. '+UP3};
+    if(year===2016)return{t:'HW1 or HW2.0',c:'none',note:TRANS+'. HW1 cannot be upgraded'};
+    if(year===2015)return{t:'Shipped with HW1',c:'none',note:'HW1 cannot be upgraded to HW3/HW4'};
+    if(year===2014)return{t:'No AP or HW1',c:'none',note:'Autopilot hardware introduced late 2014'};
+    if(year<=2013)return{t:'No autopilot hardware',c:'none'};
+    return null;
+  }
+
+  // ── Model 3 ──
+  if(m==='3'){
+    if(year>=2024)return{t:'HW4',c:'hw-likely'};
+    if(year===2023)return{t:'Possibly HW4',c:'hw-possible',note:'Highland refresh (late 2023) ships with HW4'};
+    if(year>=2020&&year<=2022)return{t:'Shipped with HW3',c:'none'};
+    if(year===2019)return{t:'HW2.5 or HW3',c:'none',note:TRANS+'. '+UP3};
+    if(year===2017||year===2018)return{t:'Shipped with HW2.5',c:'none',note:UP3};
+    return null;
+  }
+
+  return null;
+}
+
+// Cumulative production estimates through ~June 2026
+// est:true = estimated (Tesla stopped per-model reporting in 2020)
+// final:true = production ended
+// Cumulative production estimates through June 2026
+// S and X: production ended early 2026 (Fremont line converting to Optimus)
+// S+X combined ~750k total; X outsold S in later years (~55/45 split)
+const MODEL_TOTAL={
+  S:{n:360000,est:true,final:true},
+  3:{n:3500000,est:true,final:false},
+  X:{n:390000,est:true,final:true},
+  Y:{n:5300000,est:true,final:false},
+  C:{n:80000,est:true,final:false},
+  R:{n:2450,est:false,final:true},
+  T:{n:2000,est:true,final:false},
+};
+
+function seqViz(m,seq){
+  const mt=MODEL_TOTAL[m];
+  if(!mt||isNaN(seq)||seq<=0)return'';
+  const pct=Math.min(seq/mt.n,1)*100;
+  const lp=Math.max(3,Math.min(pct,90)).toFixed(1);
+  const maxFmt=(mt.est?'~':'')+mt.n.toLocaleString()+(mt.final?'':'+');
+  return`<div class="seq-viz"><div class="sv-labels"><span class="sv-car-label" style="left:${lp}%">#${seq.toLocaleString()}</span></div><div class="sv-track"><div class="sv-fill" style="width:${pct.toFixed(1)}%"></div><div class="sv-dot" style="left:${pct.toFixed(1)}%"></div></div><div class="sv-bounds"><span>#1</span><span>${maxFmt}</span></div><div class="sv-source">Production data estimated as of June 2026</div></div>`;
+}
+
+function getDerived(m,driveCode,restraintCode,bodyCode,plant,yr,isLS){
+  const year=parseInt(YEAR[yr]||0);
+
+  // Drivetrain
+  let drivetrain=null;
+  if(m==='R') drivetrain='RWD';
+  else if(m==='T'||m==='A') drivetrain=null;
+  else if(isLS){
+    drivetrain=year<=2013?'RWD':['2','4'].includes(driveCode)?'AWD':'RWD';
+  } else {
+    const AWD={S:['5','6'],3:['B','C','K','L','T'],X:['5','6'],Y:['E','F','K','L'],C:['D','E']};
+    if(driveCode) drivetrain=(AWD[m]||[]).includes(driveCode)?'AWD':'RWD';
+  }
+
+  // Trim / Variant
+  let trim=null;
+  if(isLS){
+    if(['C','G','N','P'].includes(driveCode)){
+      trim={C:'40 kWh',G:'60 kWh',N:'85 kWh',P:'P85 Performance'}[driveCode];
+    } else if(year<=2014){
+      trim=driveCode==='2'?'Dual Motor':'Standard';
+    } else if(year<=2018){
+      trim={'1':'Standard','2':'Dual Motor','3':'Performance','4':'Dual Motor Performance'}[driveCode]||null;
+    } else {
+      trim={'1':'Standard Range','2':'Long Range','3':'Performance','4':'Long Range Performance'}[driveCode]||null;
+    }
+  } else {
+    trim=({
+      S:{'5':'Long Range','6':'Plaid'},
+      3:{'A':'Standard Range','B':'Long Range','C':'Performance','J':'Standard Range','K':'Long Range','L':'Performance','R':'Standard Range','S':'Standard Range','T':'Performance'},
+      X:{'5':'Long Range','6':'Plaid'},
+      Y:{'D':'Standard Range','E':'Long Range','F':'Performance','J':'Standard Range','K':'Long Range','L':'Performance','R':'Standard Range','S':'Standard Range'},
+      C:{'D':'Dual Motor','E':'Cyberbeast'},
+      R:{'4':'Sport'},
+      T:{'B':'Semi'},
+    }[m]||{})[driveCode]||null;
+  }
+
+  // Seating
+  let seats=null;
+  if(m==='R') seats='2-seat';
+  else if(m==='X'||m==='Y') seats=(restraintCode==='A'?'7':restraintCode==='B'?'6':'5')+'-seat';
+  else seats='5-seat';
+
+  // EPA Range (approximate)
+  let range=null;
+  if(m==='Y'){
+    const rwd=['D','J','R','S'].includes(driveCode),perf=['F','L'].includes(driveCode);
+    range=rwd?(year>=2024?'~260 mi / 418 km':'~244 mi / 393 km'):perf?'~303 mi / 488 km':year>=2023?'~330 mi / 531 km':'~326 mi / 525 km';
+  } else if(m==='3'){
+    const rwd=['A','J','R','S'].includes(driveCode),perf=['C','L','T'].includes(driveCode);
+    if(year>=2024) range=rwd?'~272 mi / 438 km':perf?'~315 mi / 507 km':'~341 mi / 549 km';
+    else if(rwd) range=year>=2021?'~272 mi / 438 km':'~250 mi / 402 km';
+    else range=perf?'~315 mi / 507 km':year>=2021?'~358 mi / 576 km':'~322 mi / 518 km';
+  } else if(m==='S'&&!isLS){
+    range=driveCode==='6'?'~396 mi / 637 km':'~405 mi / 652 km';
+  } else if(m==='X'){
+    range=driveCode==='6'?'~333 mi / 536 km':'~348 mi / 560 km';
+  } else if(m==='C'){
+    range=driveCode==='E'?'~301 mi / 484 km':'~340 mi / 547 km';
+  } else if(m==='R'){
+    range='~244 mi / 393 km';
+  } else if(m==='T'){
+    range='~300–500 mi / 480–800 km';
+  }
+
+  // Supercharger generation
+  let supercharger=null;
+  if(m==='R') supercharger='Not Supercharger compatible';
+  else if(m==='T') supercharger='Megacharger — up to 1 MW';
+  else if(m==='C') supercharger='V4 — up to 350 kW';
+  else if(m==='A') supercharger='V3 / V4 — up to 350 kW';
+  else if(m==='S'||m==='X') supercharger=year>=2021?'V3 — up to 250 kW':year>=2016?'V2 — up to 150 kW':'V1 / V2 — up to 120 kW';
+  else if(m==='3') supercharger=year>=2019?'V3 — up to 250 kW':'V2 — up to 120 kW';
+  else if(m==='Y') supercharger='V3 — up to 250 kW';
+
+  // Market region
+  let market=null;
+  const isRHD=({S:['B'],3:['F'],X:['D'],Y:['H']}[m]||[]).includes(bodyCode);
+  if(plant==='F'||plant==='A') market=isRHD?'UK / Australia / NZ':'North America';
+  else if(plant==='C') market=isRHD?'Japan / Hong Kong / Thailand':'China / Asia Pacific';
+  else if(plant==='B'||plant==='G') market=isRHD?'United Kingdom':'Europe';
+  else if(plant==='N') market='North America';
+  else if(plant==='1') market='United Kingdom / Europe';
+  else if(plant==='P'||plant==='3') market='Prototype / Pre-production';
+
+  return{drivetrain,trim,seats,range,supercharger,market};
 }
 
 function chk(v){
@@ -227,7 +415,11 @@ function renderResults(v){
   if(isLS&&S_LEGACY.typedSeq.has(yr)){
     const tc=v[11];sd=`${SEQ_TYPES[tc]??tc} — #${parseInt(v.slice(12),10).toLocaleString()}`;sc=v.slice(11);
   }else{sc=v.slice(11);sd=`#${parseInt(sc,10).toLocaleString()}`;}
-  const hw=getHW(m,parseInt(sc,10));
+  const hw=getHW(m,parseInt(sc,10),v[10],yr);
+  const seqNum=isLS&&S_LEGACY.typedSeq.has(yr)?parseInt(v.slice(12),10):parseInt(sc,10);
+  const mt=MODEL_TOTAL[m];
+  const totFmt=mt&&!isNaN(seqNum)?`${mt.est?'~':''}${mt.n.toLocaleString()}${mt.final?'':'+'}`:null;
+  const seqVal=totFmt?`${sd} of ${totFmt}`:sd;
   document.getElementById('grid').innerHTML=[
     card('Digits 1–3','Manufacturer',(WMI[m]||{})[wmi],wmi),
     card('Digit 4','Model',MODEL[m],m),
@@ -238,8 +430,8 @@ function renderResults(v){
     card('Digit 7','Battery Type',fm[v[6]],v[6]),
     card('Digit 6','Restraint System',rm[v[5]],v[5]),
     `<div class="card"><div class="card-pos">Digit 9</div><div class="card-label">Check Digit</div><div class="card-value ${ok?'chk-ok':'chk-fail'}">${ok?'Valid ✓':`Invalid — expected ${exp??'?'}, got ${got}`}</div><div class="card-code">${got}</div></div>`,
-    card('Digits 12–17','Production Sequence',sd,sc,1),
-    ...(hw?[`<div class="card"><div class="card-pos">Derived · Digits 12–17</div><div class="card-label">Autopilot Hardware</div><div class="card-value ${hw.c}">${hw.t}</div><div class="card-code">${parseInt(sc,10).toLocaleString()}</div></div>`]:[]),
+    hw?`<div class="card"><div class="card-pos">Derived</div><div class="card-label">Autopilot Hardware (as shipped)</div><div class="card-value ${hw.c}">${hw.t}</div>${hw.note?`<div class="card-note">${hw.note}</div>`:''}</div>`:'<div class="card" style="visibility:hidden"></div>',
+    `<div class="card wide"><div class="card-pos">Digits 12–17</div><div class="card-label">Production Sequence</div><div class="card-value">${seqVal}</div>${seqViz(m,seqNum)}</div>`,
   ].join('');
 }
 
