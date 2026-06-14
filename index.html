@@ -46,6 +46,7 @@ h1{font-size:1.0625rem;font-weight:600;letter-spacing:-.01em}
 .divider{height:1px;background:var(--bd);margin:44px 0}
 .results{display:none}.results.show{display:block}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.card-divider{grid-column:1/-1;font-size:.575rem;font-family:var(--mo);text-transform:uppercase;letter-spacing:.08em;color:var(--su);padding:8px 2px 2px;border-top:1px solid var(--bo);margin-top:4px}
 @media(max-width:440px){.grid{grid-template-columns:1fr}.vin-input{font-size:1rem;letter-spacing:.1em}.vc-char{width:22px;height:26px;font-size:.65rem}}
 .card{background:var(--sf);border-radius:8px;padding:14px 16px}
 .card.wide{grid-column:1/-1}
@@ -62,8 +63,18 @@ h1{font-size:1.0625rem;font-weight:600;letter-spacing:-.01em}
 .sv-track{position:relative;height:4px;background:var(--bd);border-radius:2px;margin:0 0 6px}
 .sv-fill{position:absolute;left:0;top:0;height:100%;background:var(--ok);border-radius:2px;opacity:.35}
 .sv-dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;background:var(--ok);border-radius:50%;box-shadow:0 0 0 2px var(--bg)}
+.sv-band{position:absolute;top:0;height:100%;background:var(--ok);border-radius:2px;opacity:.5}
 .sv-bounds{display:flex;justify-content:space-between;font-size:.55rem;font-family:var(--mo);color:var(--mu)}
 .sv-source{margin-top:6px;font-size:.55rem;color:var(--mu);font-style:italic}
+.info-btn{background:none;border:none;cursor:pointer;font-size:.7rem;color:var(--mu);padding:0 0 0 5px;vertical-align:middle;line-height:1;transition:color .15s}
+.info-btn:hover{color:var(--tx)}
+.hw-info-panel{margin-top:10px;padding-top:10px;border-top:1px solid var(--bd);display:none}
+.hw-info-panel.open{display:block}
+.hw-info-panel dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline}
+.hw-info-panel dt{font-size:.675rem;font-weight:600;color:var(--tx);white-space:nowrap;font-family:var(--mo)}
+.hw-info-panel dd{margin:0;font-size:.675rem;color:var(--mu);line-height:1.45}
+.sv-title{font-size:.575rem;font-family:var(--mo);color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.seq-viz+.sv-title{margin-top:10px}
 .samples{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:28px;align-items:center}
 .samples-label{font-size:.6rem;font-family:var(--mo);color:var(--su);text-transform:uppercase;letter-spacing:.08em;margin-right:2px}
 .sample-btn{background:none;border:1.5px solid var(--bd);border-radius:20px;padding:5px 13px;font-size:.6875rem;font-family:var(--mo);color:var(--mu);cursor:pointer;transition:border-color .15s,color .15s,background .15s;letter-spacing:.02em;white-space:nowrap}
@@ -76,10 +87,10 @@ h1{font-size:1.0625rem;font-weight:600;letter-spacing:-.01em}
 <div class="samples">
 <span class="samples-label">Examples</span>
 <button class="sample-btn" data-vin="5YJSA1E29JF221847">Model S</button>
-<button class="sample-btn" data-vin="5YJ3E1EB1NF847293">Model 3</button>
+<button class="sample-btn" data-vin="5YJ3E1EB7NF400001">Model 3</button>
 <button class="sample-btn" data-vin="7SAXCAE60RF387143">Model X</button>
 <button class="sample-btn" data-vin="7SAYGDEK2RA394728">Model Y</button>
-<button class="sample-btn" data-vin="7G2CJHED3RA047293">Cybertruck</button>
+<button class="sample-btn" data-vin="7G2CJHED6RA025000">Cybertruck</button>
 <button class="sample-btn" data-vin="SFZRA2B45A1001847">Roadster</button>
 </div>
 <div class="input-wrap">
@@ -203,6 +214,29 @@ const S_LEGACY={
 
 const SEQ_TYPES={A:'Alpha Prototype',B:'Beta Prototype',F:'Founder Series',P:'Production',R:'Release Candidate',S:'Signature Series'};
 
+// Estimated cumulative production per model per plant, ~June 2026
+const PLANT_MODEL_TOTALS={
+  Y:{F:950000,C:2200000,A:750000,B:500000,G:500000},
+  3:{F:750000,C:1800000,B:280000,G:280000},
+  S:{F:360000},X:{F:390000},
+  C:{A:75000,N:5000},T:{A:1500,N:500},
+};
+// Cumulative global production range [start, end] per model year code.
+// Represents how many of that model had been built globally at the
+// start and end of each model year — used to show where a car falls
+// without needing a per-plant offset (which is inaccurate for parallel plants).
+const GLOBAL_YEAR_RANGE={
+  Y:{L:[0,100000],M:[100000,600000],N:[600000,1400000],P:[1400000,2600000],R:[2600000,3700000],S:[3700000,4600000],T:[4600000,5050000]},
+  3:{H:[0,2000],J:[2000,150000],K:[150000,450000],L:[450000,750000],M:[750000,1200000],N:[1200000,1800000],P:[1800000,2400000],R:[2400000,3100000],S:[3100000,3500000],T:[3500000,3700000]},
+  C:{R:[0,40000],S:[40000,70000],T:[70000,80000]},
+};
+// S and X sequences are accurate global ranks only before other models joined their WMI:
+// Model S (5YJ): pure until Model 3 started July 2017 → ~seq 180,000
+// Model X (7SA): pure until Model Y switched to 7SA for MY2022 → ~seq 140,000
+// Above these cutoffs the WMI counter is shared and sequence ≠ model count
+const PURE_SEQ_CUTOFF={S:180000,X:140000};
+const GLOBAL_ACCURATE=new Set(['S','X','R']);
+
 // Array indexed by 1-based VIN position (index 0 unused)
 const POS_CLS=['','c-wmi','c-wmi','c-wmi','c-model','c-body','c-rest','c-fuel','c-drv','c-chk','c-yr','c-plt','c-seq','c-seq','c-seq','c-seq','c-seq','c-seq'];
 
@@ -294,13 +328,37 @@ const MODEL_TOTAL={
   T:{n:2000,est:true,final:false},
 };
 
-function seqViz(m,seq){
+function seqViz(m,seq,plant,yr){
+  const cutoff=PURE_SEQ_CUTOFF[m];
+  if(cutoff!==undefined&&seq>cutoff)return'';
   const mt=MODEL_TOTAL[m];
   if(!mt||isNaN(seq)||seq<=0)return'';
-  const pct=Math.min(seq/mt.n,1)*100;
-  const lp=Math.max(3,Math.min(pct,90)).toFixed(1);
-  const maxFmt=(mt.est?'~':'')+mt.n.toLocaleString()+(mt.final?'':'+');
-  return`<div class="seq-viz"><div class="sv-labels"><span class="sv-car-label" style="left:${lp}%">#${seq.toLocaleString()}</span></div><div class="sv-track"><div class="sv-fill" style="width:${pct.toFixed(1)}%"></div><div class="sv-dot" style="left:${pct.toFixed(1)}%"></div></div><div class="sv-bounds"><span>#1</span><span>${maxFmt}</span></div><div class="sv-source">Production data estimated as of June 2026</div></div>`;
+  const multi=!!(GLOBAL_YEAR_RANGE[m]);
+  const pmt=multi?(PLANT_MODEL_TOTALS[m]||{})[plant]:null;
+  let out='';
+  // Option A — plant-local bar (multi-plant models only)
+  if(pmt){
+    const pct=Math.min(seq/pmt,1)*100,lp=Math.max(3,Math.min(pct,90)).toFixed(1);
+    out+=`<div class="sv-title">At this plant</div><div class="seq-viz"><div class="sv-labels"><span class="sv-car-label" style="left:${lp}%">#${seq.toLocaleString()}</span></div><div class="sv-track"><div class="sv-fill" style="width:${pct.toFixed(1)}%"></div><div class="sv-dot" style="left:${pct.toFixed(1)}%"></div></div><div class="sv-bounds"><span>#1</span><span>~${pmt.toLocaleString()}+</span></div></div>`;
+  }
+  // Option B — global year-range band
+  const yr_range=multi?(GLOBAL_YEAR_RANGE[m]||{})[yr]:null;
+  if(multi&&yr_range){
+    const [gs,ge]=yr_range;
+    const gsPct=Math.min(gs/mt.n,1)*100,gePct=Math.min(ge/mt.n,1)*100;
+    const midPct=((gsPct+gePct)/2).toFixed(1);
+    const maxFmt=(mt.est?'~':'')+mt.n.toLocaleString()+(mt.final?'':'+');
+    const fmtN=n=>n===0?'#1':n>=1000000?`~${(n/1000000).toFixed(1)}M`:`~${Math.round(n/1000)}k`;
+    out+=`<div class="sv-title">Estimated globally (${YEAR[yr]??yr} model year)</div><div class="seq-viz"><div class="sv-labels"><span class="sv-car-label" style="left:${midPct}%">${fmtN(gs)} – ${fmtN(ge)}</span></div><div class="sv-track"><div class="sv-band" style="left:${gsPct.toFixed(1)}%;width:${(gePct-gsPct).toFixed(1)}%"></div></div><div class="sv-bounds"><span>#1</span><span>${maxFmt}</span></div></div>`;
+  } else if(!pmt){
+    // Single-plant model — sequence is the exact global rank
+    const pct=Math.min(seq/mt.n,1)*100,lp=Math.max(3,Math.min(pct,90)).toFixed(1);
+    const maxFmt=(mt.est?'~':'')+mt.n.toLocaleString()+(mt.final?'':'+');
+    out+=`${GLOBAL_ACCURATE.has(m)?'<div class="sv-title">Globally</div>':''}<div class="seq-viz"><div class="sv-labels"><span class="sv-car-label" style="left:${lp}%">#${seq.toLocaleString()}</span></div><div class="sv-track"><div class="sv-fill" style="width:${pct.toFixed(1)}%"></div><div class="sv-dot" style="left:${pct.toFixed(1)}%"></div></div><div class="sv-bounds"><span>#1</span><span>${maxFmt}</span></div></div>`;
+  }
+  const isPure=cutoff!==undefined;
+  out+=`<div class="sv-source">${multi?'Per-plant and global totals are estimates':isPure?'Built before other models shared this factory\'s VIN counter — global rank is exact':'Production data estimated'} as of June 2026</div>`;
+  return out;
 }
 
 function getDerived(m,driveCode,restraintCode,bodyCode,plant,yr,isLS){
@@ -417,21 +475,30 @@ function renderResults(v){
   }else{sc=v.slice(11);sd=`#${parseInt(sc,10).toLocaleString()}`;}
   const hw=getHW(m,parseInt(sc,10),v[10],yr);
   const seqNum=isLS&&S_LEGACY.typedSeq.has(yr)?parseInt(v.slice(12),10):parseInt(sc,10);
-  const mt=MODEL_TOTAL[m];
-  const totFmt=mt&&!isNaN(seqNum)?`${mt.est?'~':''}${mt.n.toLocaleString()}${mt.final?'':'+'}`:null;
-  const seqVal=totFmt?`${sd} of ${totFmt}`:sd;
+  const seqVal=sd;
+  const d=getDerived(m,v[7],v[5],v[4],v[10],yr,isLS);
+  const dc=(lbl,val)=>val?card('Derived',lbl,val):'';
   document.getElementById('grid').innerHTML=[
-    card('Digits 1–3','Manufacturer',(WMI[m]||{})[wmi],wmi),
+    // ── At a glance ──
     card('Digit 4','Model',MODEL[m],m),
     card('Digit 10','Model Year',YEAR[yr],yr),
     card('Digit 11','Assembly Plant',PLANT[v[10]],v[10]),
     card('Digit 5','Body Type',bm[v[4]],v[4]),
-    card('Digit 8','Drive Unit',dm[v[7]],v[7]),
+    dc('Trim',d.trim),
+    dc('Drivetrain',d.drivetrain),
+    dc('Seating',d.seats),
+    dc('Supercharger',d.supercharger),
+    dc('EPA Range',d.range),
+    dc('Market',d.market),
+    hw?`<div class="card"><div class="card-pos">Derived</div><div class="card-label">Autopilot Hardware (as shipped)<button class="info-btn" onclick="toggleHwInfo(this)" aria-label="What does this mean?">ⓘ</button></div><div class="card-value ${hw.c}">${hw.t}</div>${hw.note?`<div class="card-note">${hw.note}</div>`:''}<div class="hw-info-panel"><dl><dt>Likely HW4</dt><dd>Sequence falls clearly past the known HW3→HW4 transition for this plant — very high confidence.</dd><dt>Possibly HW4</dt><dd>Falls in the transition window (~10,000 cars) where some units got HW3 and some HW4 depending on exact build date.</dd><dt>HW3</dt><dd>Tesla's 3rd-gen FSD computer. Capable of Autopilot and Full Self-Driving, but cannot run v12+ neural-net features without a paid hardware upgrade.</dd><dt>HW2.5 / HW2.0</dt><dd>Earlier Autopilot hardware. May have been upgraded to HW3 if FSD was purchased before Tesla's cutoff date.</dd><dt>HW1</dt><dd>Original Mobileye-based Autopilot (2014–2016). Cannot be upgraded to HW3 or HW4.</dd></dl></div></div>`:'',
+    // ── Technical details ──
+    '<div class="card-divider">Technical Details</div>',
+    card('Digits 1–3','Manufacturer',(WMI[m]||{})[wmi],wmi),
     card('Digit 7','Battery Type',fm[v[6]],v[6]),
+    card('Digit 8','Drive Unit',dm[v[7]],v[7]),
     card('Digit 6','Restraint System',rm[v[5]],v[5]),
     `<div class="card"><div class="card-pos">Digit 9</div><div class="card-label">Check Digit</div><div class="card-value ${ok?'chk-ok':'chk-fail'}">${ok?'Valid ✓':`Invalid — expected ${exp??'?'}, got ${got}`}</div><div class="card-code">${got}</div></div>`,
-    hw?`<div class="card"><div class="card-pos">Derived</div><div class="card-label">Autopilot Hardware (as shipped)</div><div class="card-value ${hw.c}">${hw.t}</div>${hw.note?`<div class="card-note">${hw.note}</div>`:''}</div>`:'<div class="card" style="visibility:hidden"></div>',
-    `<div class="card wide"><div class="card-pos">Digits 12–17</div><div class="card-label">Production Sequence</div><div class="card-value">${seqVal}</div>${seqViz(m,seqNum)}</div>`,
+    `<div class="card wide"><div class="card-pos">Digits 12–17</div><div class="card-label">Production Sequence</div><div class="card-value">${seqVal}</div>${seqViz(m,seqNum,v[10],yr)}</div>`,
   ].join('');
 }
 
@@ -476,6 +543,7 @@ function processInput(raw){
   const u=new URL(location.href);u.searchParams.set('vin',v);history.replaceState(null,'',u);
 }
 
+function toggleHwInfo(btn){btn.closest('.card').querySelector('.hw-info-panel').classList.toggle('open');}
 vinEl.addEventListener('input',()=>processInput(vinEl.value));
 document.querySelectorAll('.sample-btn').forEach(b=>b.addEventListener('click',()=>processInput(b.dataset.vin)));
 document.getElementById('clearBtn').addEventListener('click',()=>processInput(''));

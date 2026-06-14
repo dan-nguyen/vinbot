@@ -1,6 +1,6 @@
 # vinbot
 
-A fast, single-file Tesla VIN decoder. Paste any Tesla VIN and get a full breakdown of the vehicle — model, year, plant, drive unit, battery type, restraint system, and more.
+A fast, single-file Tesla VIN decoder. Paste any Tesla VIN and get a full breakdown of the vehicle — model, trim, drivetrain, range, Autopilot hardware, production sequence, and more.
 
 **[Try it →](https://dan-nguyen.github.io/vinbot/)**
 
@@ -8,12 +8,19 @@ A fast, single-file Tesla VIN decoder. Paste any Tesla VIN and get a full breakd
 
 - Decodes all Tesla models: Model S, 3, X, Y, Cybertruck, Roadster, Cybercab, Semi
 - Full legacy Model S support (2012–2020) with year-specific decoding
-- HW3/HW4 Autopilot hardware inference for Model X based on production sequence
+- Derived fields: Trim, Drivetrain, Seating, EPA Range, Supercharger generation, Market region
+- HW1 / HW2.5 / HW3 / HW4 Autopilot hardware inference based on production sequence and plant
+- Production sequence visualization — per-plant progress bar and global year-range estimate
 - VIN check digit validation
 - Color-coded VIN breakdown with WMI / VDS / VIS section labels
 - Shareable URLs via `?vin=` query parameter
 - Dark mode (default), with toggle — preference saved to localStorage
 - No dependencies, no build step — one HTML file
+
+## Also included
+
+- **Chrome Extension** (`chrome-extension/`) — auto-detects Tesla VINs on any webpage and shows a decoded popup on click
+- **Tampermonkey userscript** (`tampermonkey.js`) — same VIN detection for use with the Tampermonkey browser extension
 
 ## Supported Models
 
@@ -33,6 +40,17 @@ A fast, single-file Tesla VIN decoder. Paste any Tesla VIN and get a full breakd
 Open `index.html` directly in any browser — no server needed.
 
 To share a decoded VIN, copy the URL after pasting one in. The VIN is preserved in the `?vin=` parameter.
+
+### Chrome Extension
+
+1. Open `chrome://extensions` in Chrome
+2. Enable **Developer mode**
+3. Click **Load unpacked** and select the `chrome-extension/` folder
+
+### Tampermonkey
+
+1. Install the [Tampermonkey](https://www.tampermonkey.net/) browser extension
+2. Create a new script and paste the contents of `tampermonkey.js`
 
 ## VIN Structure
 
