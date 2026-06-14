@@ -17,10 +17,9 @@ A fast, single-file Tesla VIN decoder. Paste any Tesla VIN and get a full breakd
 - Dark mode (default), with toggle — preference saved to localStorage
 - No dependencies, no build step — one HTML file
 
-## Also included
+## Browser extensions
 
-- **Chrome Extension** (`chrome-extension/`) — auto-detects Tesla VINs on any webpage and shows a decoded popup on click
-- **Tampermonkey userscript** (`tampermonkey.js`) — same VIN detection for use with the Tampermonkey browser extension
+A Chrome extension and Tampermonkey userscript that auto-detect Tesla VINs on any webpage and show a decoded popup on click are available at **[dan-nguyen/vinbot-userscripts](https://github.com/dan-nguyen/vinbot-userscripts)**.
 
 ## Supported Models
 
@@ -40,17 +39,6 @@ A fast, single-file Tesla VIN decoder. Paste any Tesla VIN and get a full breakd
 Open `index.html` directly in any browser — no server needed.
 
 To share a decoded VIN, copy the URL after pasting one in. The VIN is preserved in the `?vin=` parameter.
-
-### Chrome Extension
-
-1. Open `chrome://extensions` in Chrome
-2. Enable **Developer mode**
-3. Click **Load unpacked** and select the `chrome-extension/` folder
-
-### Tampermonkey
-
-1. Install the [Tampermonkey](https://www.tampermonkey.net/) browser extension
-2. Create a new script and paste the contents of `tampermonkey.js`
 
 ## VIN Structure
 
