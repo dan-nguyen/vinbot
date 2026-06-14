@@ -19,7 +19,7 @@ A fast, single-file Tesla VIN decoder. Paste any Tesla VIN and get a full breakd
 
 ## Browser extensions
 
-A Chrome extension and Tampermonkey userscript that auto-detect Tesla VINs on any webpage and show a decoded popup on click are available at **[dan-nguyen/vin-userscripts](https://github.com/dan-nguyen/vin-userscripts)**.
+A Chrome extension and Tampermonkey userscript that auto-detect Tesla VINs on any webpage and show a decoded popup on click are available at **[dan-nguyen/vinbot-userscripts](https://github.com/dan-nguyen/vinbot-userscripts)**.
 
 ## Supported Models
 
